@@ -57,3 +57,17 @@ frontend/pnpm-lock.yaml
 temp/
 tmp/
 *.tmp
+
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.env
+.env.*
+!.env.example
+venv/
+.venv/
+node_modules/
+.next/
+dist/
+build/
