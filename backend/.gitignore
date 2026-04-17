@@ -1,4 +1,58 @@
-venv/
-__pycache__/
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Env files
 .env
-*.pyc
+.env.*
+!.env.example
+
+# Python backend
+backend/venv/
+backend/.venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.mypy_cache/
+backend/.ruff_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.alembic/
+backend/dist/
+backend/build/
+
+# FastAPI / uploads / local db
+backend/uploads/
+backend/*.db
+backend/*.sqlite3
+
+# Node frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+frontend/build/
+frontend/.turbo/
+frontend/coverage/
+
+# Package managers
+frontend/package-lock.json
+frontend/yarn.lock
+frontend/pnpm-lock.yaml
+
+# Misc
+temp/
+tmp/
+*.tmp
