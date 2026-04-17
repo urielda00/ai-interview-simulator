@@ -1,7 +1,8 @@
 # OS
 .DS_Store
 Thumbs.db
-
+**/__pycache__/
+**/*.pycenv
 # Editors
 .vscode/
 .idea/
