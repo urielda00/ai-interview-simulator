@@ -6,30 +6,70 @@
   - Response: { "status": "ok" }
 
 ## Auth
-- Placeholder for:
-  - POST /register
-  - POST /login
-  - GET /me
+
+### POST /api/v1/auth/register
+Creates a new user.
+
+Request body:
+{
+  "email": "demo@example.com",
+  "password": "123456",
+  "full_name": "Demo User"
+}
+
+Response:
+{
+  "id": 1,
+  "email": "demo@example.com",
+  "full_name": "Demo User",
+  "created_at": "..."
+}
+
+### GET /api/v1/auth/{user_id}
+Returns a user by id.
+
+Response:
+{
+  "id": 1,
+  "email": "demo@example.com",
+  "full_name": "Demo User",
+  "created_at": "..."
+}
 
 ## Sessions
-- Placeholder for:
-  - POST /
-  - GET /{session_id}
-  - GET /user/{user_id}
 
-## Interviews
-- Placeholder for:
-  - POST /start
-  - POST /answer
-  - POST /next-question
-  - POST /finish
+### POST /api/v1/sessions/
+Creates a new interview session.
 
-## Reports
-- Placeholder for:
-  - GET /{session_id}
-  - GET /user/{user_id}
+Request body:
+{
+  "user_id": 1,
+  "track": "backend",
+  "level": "junior",
+  "mode": "standard"
+}
 
-## Uploads
-- Placeholder for:
-  - POST /project-files
-  - GET /{file_id}
+Response:
+{
+  "id": 1,
+  "user_id": 1,
+  "track": "backend",
+  "level": "junior",
+  "mode": "standard",
+  "status": "created",
+  "created_at": "..."
+}
+
+### GET /api/v1/sessions/{session_id}
+Returns a session by id.
+
+Response:
+{
+  "id": 1,
+  "user_id": 1,
+  "track": "backend",
+  "level": "junior",
+  "mode": "standard",
+  "status": "created",
+  "created_at": "..."
+}
