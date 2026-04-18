@@ -3,7 +3,6 @@ from datetime import datetime
 
 
 class SessionCreate(BaseModel):
-    user_id: int
     track: str
     level: str
     mode: str
@@ -16,6 +15,7 @@ class SessionResponse(BaseModel):
     level: str
     mode: str
     status: str
+    current_question_index: int
     created_at: datetime
 
     class Config:

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, func
 from app.core.database import Base
 
+
 class InterviewSession(Base):
     __tablename__ = "interview_sessions"
 
@@ -10,4 +11,5 @@ class InterviewSession(Base):
     level = Column(String, nullable=False)
     mode = Column(String, nullable=False)
     status = Column(String, nullable=False, default="created")
+    current_question_index = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

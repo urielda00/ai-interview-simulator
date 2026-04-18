@@ -1,0 +1,53 @@
+Voice interview מלא
+המשתמש עונה בקול, המערכת מתמללת, שואלת חזרה בקול, ומנתחת גם תוכן וגם תקשורת.
+Live coding interview mode
+מסך קוד בזמן אמת עם שאלות המשך לפי מה שהמשתמש כותב תוך כדי.
+Project-aware deep code graph
+לא רק קובץ בודד - אלא הבנה של קשרים בין קבצים, imports, שכבות, ותלויות.
+Adaptive interviewer personality
+מראיין קשוח, ידידותי, FAANG style, startup style, production-oriented ועוד.
+Weakness-focused training plan
+אחרי כל ראיון המערכת בונה מסלול תרגול אישי לפי חולשות שחזרו.
+Follow-up challenge mode
+אם המשתמש ענה טוב, המערכת מקשה מיד עם edge cases, scale, security, tradeoffs.
+Answer replay + critique
+המשתמש רואה תשובה קודמת שלו, והמערכת מפרקת מה היה טוב, חלש, ומה לשפר.
+Model answer generation
+אחרי סיום שאלה, להציג תשובת benchmark חזקה להשוואה.
+Role-specific interview packs
+backend, fullstack, data, DevOps, junior, senior, security, product engineering.
+Company-style interview presets
+חבילות בסגנון חברה גדולה, סטארטאפ, צוות infra, צוות product, ועוד.
+System design mode
+ראיונות system design עם המשך דינמי, bottlenecks, scaling, DB choices, monitoring.
+Behavioral interview mode
+שאלות STAR, פידבק על מבנה תשובה, בהירות, impact, ownership.
+Targeted mini-games for practice
+endpoints נפרדים למשחקי תרגול קצרים: tradeoff quiz, bug hunt, API critique, architecture decisions.
+Code snippet interrogation
+המשתמש מעלה snippet קטן והמערכת שואלת למה נכתב כך, איפה הסיכון, איך משפרים.
+Resume-aware interview mode
+להעלות קורות חיים, והמערכת שואלת על מה שבאמת כתוב בהם.
+Portfolio-aware mode
+חיבור בין פרויקטים מהפורטפוליו לבין שאלות מותאמות על architecture, ownership, decisions.
+Multi-turn answer decomposition
+המערכת מפרקת תשובה חלשה לתת-שאלות כדי לעזור למשתמש לבנות תשובה טובה.
+Detailed speaking analytics
+ניתוח מילים חלשות, חזרות, תשובות ארוכות מדי, חוסר חדות, filler words.
+Recruiter dashboard
+דשבורד עם מגמות: ציון לאורך זמן, קטגוריות חלשות, שיפור בין סשנים, הצלחה לפי mode.
+Shareable interview report
+דוח יפה לייצוא עם summary, strengths, weak areas, example answers, progression.
+
+עוד 10 בונוסים קטנים אבל שווים:
+
+השוואת ביצועים בין שבועות
+leaderboard אישי
+daily challenge
+streaks
+notifications/reminders
+bookmark questions
+save best answers
+interview replay timeline
+multilingual interviews
+mock panel interview עם כמה "מראיינים"
