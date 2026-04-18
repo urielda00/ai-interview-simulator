@@ -3,6 +3,7 @@ import logging
 from typing import Any
 
 from app.core.config import settings
+from app.core.i18n import llm_language_instruction, llm_language_name
 
 try:
     from openai import OpenAI
@@ -196,6 +197,7 @@ def generate_followup_with_openai(
     track: str,
     level: str,
     mode: str,
+    language: str,
 ) -> str | None:
     prompt = f"""
 You are a sharp technical interviewer.
@@ -203,6 +205,10 @@ You are a sharp technical interviewer.
 Track: {track}
 Level: {level}
 Mode: {mode}
+Output language: {llm_language_name(language)}
+
+Language instruction:
+{llm_language_instruction(language)}
 
 Current question:
 {question}
@@ -216,7 +222,13 @@ Do not include explanations, numbering, or extra text.
 
     return _chat_completion(
         messages=[
-            {"role": "system", "content": "You are a strict but helpful technical interviewer."},
+            {
+                "role": "system",
+                "content": (
+                    "You are a strict but helpful technical interviewer. "
+                    f"{llm_language_instruction(language)}"
+                ),
+            },
             {"role": "user", "content": prompt},
         ],
         temperature=0.3,
@@ -229,6 +241,7 @@ def score_answer_with_openai(
     track: str,
     level: str,
     mode: str,
+    language: str,
 ) -> dict[str, Any] | None:
     rubric = _get_rubric_for_mode(mode)
 
@@ -238,6 +251,10 @@ You are grading a mock interview answer.
 Track: {track}
 Level: {level}
 Mode: {mode}
+Output language: {llm_language_name(language)}
+
+Language instruction:
+{llm_language_instruction(language)}
 
 Question:
 {question}
@@ -278,7 +295,13 @@ Rules:
 
     content = _chat_completion(
         messages=[
-            {"role": "system", "content": "You are a strict technical evaluator. Return JSON only."},
+            {
+                "role": "system",
+                "content": (
+                    "You are a strict technical evaluator. Return JSON only. "
+                    f"{llm_language_instruction(language)}"
+                ),
+            },
             {"role": "user", "content": prompt},
         ],
         temperature=0.2,
@@ -322,6 +345,7 @@ def build_report_with_openai(
     track: str,
     level: str,
     mode: str,
+    language: str,
 ) -> dict[str, str] | None:
     prompt = f"""
 You are generating a final interview report.
@@ -329,6 +353,10 @@ You are generating a final interview report.
 Track: {track}
 Level: {level}
 Mode: {mode}
+Output language: {llm_language_name(language)}
+
+Language instruction:
+{llm_language_instruction(language)}
 
 Transcript:
 {json.dumps(transcript, ensure_ascii=False)}
@@ -347,7 +375,13 @@ Return JSON only with this exact shape:
 
     content = _chat_completion(
         messages=[
-            {"role": "system", "content": "You are a technical interview report writer. Return JSON only."},
+            {
+                "role": "system",
+                "content": (
+                    "You are a technical interview report writer. Return JSON only. "
+                    f"{llm_language_instruction(language)}"
+                ),
+            },
             {"role": "user", "content": prompt},
         ],
         temperature=0.3,

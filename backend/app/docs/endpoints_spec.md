@@ -174,28 +174,40 @@ Yes
 
 Headers:
 Authorization: Bearer <token>
+Accept-Language: he | en (optional)
 
 Request body:
 {
   "track": "backend",
   "level": "junior",
-  "mode": "standard"
+  "mode": "standard",
+  "language": "he"
 }
 
 Field rules:
 - track - required, string
 - level - required, string
 - mode - required, string
+- language - optional, "he" or "en"
 
 Supported mode values:
 - standard
 - leetcode
 - project_aware
 
+Supported language values:
+- he
+- en
+
 Common level values:
 - junior
 - mid
 - senior
+
+Language resolution order:
+1. request body field `language`
+2. `Accept-Language` header
+3. default `en`
 
 Response 200:
 {
@@ -215,6 +227,8 @@ Possible errors:
 
 Notes:
 - user_id is taken from the token, not from the request body
+- session language is stored and used for the rest of the interview/report flow
+- response schema is unchanged
 
 ---
 
@@ -322,6 +336,7 @@ Yes
 
 Headers:
 Authorization: Bearer <token>
+Accept-Language: he | en (optional)
 
 Request body:
 {
@@ -339,6 +354,10 @@ Behavior by mode:
 - standard - starts normal technical Q&A
 - leetcode - starts coding-style interview
 - project_aware - starts project-based questioning using uploaded file names if available
+
+Language behavior:
+- user-facing text is returned in the saved session language
+- `Accept-Language` may still be sent by frontend for consistency, but session language is the source of truth after session creation
 
 Possible errors:
 - 401 - missing/invalid token
@@ -361,6 +380,7 @@ Yes
 
 Headers:
 Authorization: Bearer <token>
+Accept-Language: he | en (optional)
 
 Request body:
 {
@@ -398,10 +418,17 @@ Scoring behavior:
 - Falls back to local heuristic scoring otherwise
 - Detailed category breakdown is available separately through history score endpoints
 
+Language behavior:
+- user-facing text is returned in the saved session language
+- technical terms may remain in English even inside Hebrew responses when appropriate
+
 Possible errors:
 - 401 - missing/invalid token
 - 404 - session not found
 - 422 - invalid request body
+- 422 - empty answer
+- 400 - interview has not started yet
+- 400 - interview already completed
 
 Example 404:
 {
@@ -604,6 +631,7 @@ Yes
 
 Headers:
 Authorization: Bearer <token>
+Accept-Language: he | en (optional)
 
 Path params:
 - session_id - integer
@@ -627,6 +655,10 @@ Field meanings:
 - weaknesses - weaknesses paragraph
 - study_plan - suggested improvement plan
 - created_at - report timestamp
+
+Language behavior:
+- report text is returned in the saved session language
+- technical terms may remain in English when appropriate
 
 Possible errors:
 - 401 - missing/invalid token
@@ -780,16 +812,21 @@ Recommended frontend order:
 2. Login user
 3. Save JWT token
 4. Call /api/v1/auth/me
-5. Create session with chosen track, level, mode
-6. Optionally fetch /api/v1/sessions/ for dashboard/history
-7. If mode is project_aware, upload one or more files first
-8. Call /api/v1/interviews/start
-9. Repeatedly call /api/v1/interviews/answer
-10. Use /api/v1/interviews/transcript/{session_id} to render full chat history
-11. Use /api/v1/history/scores/{session_id} to render score breakdown
-12. When status becomes completed, or when user clicks finish, call /api/v1/interviews/finish/{session_id} if needed
-13. Fetch final report using /api/v1/reports/{session_id}
-14. Use /api/v1/history/sessions for progress/history dashboard
+5. Create session with chosen track, level, mode, language
+6. Send Accept-Language header on requests for consistency
+7. Optionally fetch /api/v1/sessions/ for dashboard/history
+8. If mode is project_aware, upload one or more files first
+9. Call /api/v1/interviews/start
+10. Repeatedly call /api/v1/interviews/answer
+11. Use /api/v1/interviews/transcript/{session_id} to render full chat history
+12. Use /api/v1/history/scores/{session_id} to render score breakdown
+13. When status becomes completed, or when user clicks finish, call /api/v1/interviews/finish/{session_id} if needed
+14. Fetch final report using /api/v1/reports/{session_id}
+15. Use /api/v1/history/sessions for progress/history dashboard
+
+Notes:
+- session language should be chosen at session creation time
+- after session creation, the saved session language is the source of truth for interview and report text
 
 ---
 
@@ -804,3 +841,10 @@ Recommended frontend order:
 - standard mode may return AI-generated follow-up questions if OpenAI is configured
 - leetcode mode returns coding-style prompts and uses a different scoring style
 - history/sessions is the recommended endpoint for dashboard cards / previous attempts / progress view
+- frontend should send Accept-Language: he or en
+- POST /api/v1/sessions/ should include language: "he" | "en"
+- response field names do not change by language
+- only string values are localized
+- transcript stores the text as originally generated in the session language
+
+

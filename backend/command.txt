@@ -1,2 +1,4 @@
 uvicorn app.main:app --reload
 python run_e2e_check.py
+
+alembic upgrade head בכל שינוי 

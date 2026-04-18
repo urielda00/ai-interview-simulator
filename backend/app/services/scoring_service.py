@@ -176,6 +176,7 @@ def score_answer(
     track: str,
     level: str,
     mode: str,
+    language: str,
 ) -> dict:
     ai_score = score_answer_with_openai(
         question=question,
@@ -183,6 +184,7 @@ def score_answer(
         track=track,
         level=level,
         mode=mode,
+        language=language,
     )
 
     if ai_score:

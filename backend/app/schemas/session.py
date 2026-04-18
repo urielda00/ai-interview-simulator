@@ -6,6 +6,7 @@ class SessionCreate(BaseModel):
     track: str
     level: str
     mode: str
+    language: str | None = None
 
 
 class SessionResponse(BaseModel):

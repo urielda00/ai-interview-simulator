@@ -15,7 +15,9 @@
 - track
 - level
 - mode
+- language
 - status
+- current_question_index
 - created_at
 
 ### session_messages
@@ -57,3 +59,9 @@
 - one session -> many scores
 - one session -> one report
 - one session -> many uploaded files
+
+## Notes
+- interview_sessions.language stores the resolved session language
+- session language is currently expected to be he or en
+- transcript content is stored as generated, in the original session language
+- database and API responses should fully support UTF-8 text including Hebrew

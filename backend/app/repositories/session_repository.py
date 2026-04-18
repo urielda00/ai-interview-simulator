@@ -10,6 +10,7 @@ def create_session(db: Session, user_id: int, session_data: SessionCreate) -> In
         track=session_data.track,
         level=session_data.level,
         mode=session_data.mode,
+        language=session_data.language or "en",
         status="created",
         current_question_index=0,
     )

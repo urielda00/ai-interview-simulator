@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.core.database import get_db
+from app.core.i18n import normalize_language
 from app.schemas.session import SessionCreate, SessionResponse
 from app.services.session_service import (
     create_new_session,
@@ -16,10 +17,18 @@ router = APIRouter()
 @router.post("/", response_model=SessionResponse)
 def create_session(
     session_data: SessionCreate,
+    accept_language: str | None = Header(default=None, alias="Accept-Language"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    return create_new_session(db, current_user.id, session_data)
+    resolved_language = normalize_language(session_data.language, accept_language)
+    enriched_session_data = SessionCreate(
+        track=session_data.track,
+        level=session_data.level,
+        mode=session_data.mode,
+        language=resolved_language,
+    )
+    return create_new_session(db, current_user.id, enriched_session_data)
 
 
 @router.get("/", response_model=list[SessionResponse])

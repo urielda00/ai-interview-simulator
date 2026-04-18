@@ -10,6 +10,7 @@ class InterviewSession(Base):
     track = Column(String, nullable=False)
     level = Column(String, nullable=False)
     mode = Column(String, nullable=False)
+    language = Column(String, nullable=False, default="en", server_default="en")
     status = Column(String, nullable=False, default="created")
     current_question_index = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
