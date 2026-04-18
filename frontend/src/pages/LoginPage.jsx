@@ -67,15 +67,13 @@ export default function LoginPage() {
               placeholder="******"
               {...register("password", { required: "Password is required" })}
             />
-            {errors.password ? (
-              <span className="field-error">{errors.password.message}</span>
-            ) : null}
+            {errors.password ? <span className="field-error">{errors.password.message}</span> : null}
           </div>
 
           {serverError ? <div className="alert-error">{serverError}</div> : null}
 
           <button className="btn btn-primary" type="submit" disabled={isSubmittingForm}>
-            {isSubmittingForm ? "Signing in..." : t("login")}
+            {isSubmittingForm ? t("signingIn") : t("login")}
           </button>
         </form>
 

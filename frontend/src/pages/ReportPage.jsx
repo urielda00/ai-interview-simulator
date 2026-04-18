@@ -45,15 +45,15 @@ export default function ReportPage() {
   }, [token, sessionId]);
 
   const scoreMeaning = useMemo(() => {
-    return getScoreMeaning(scoreSummary?.average_score || 0);
-  }, [scoreSummary]);
+    return getScoreMeaning(scoreSummary?.average_score || 0, language);
+  }, [scoreSummary, language]);
 
   return (
     <div className="container page-stack">
       <PageHeader
         eyebrow={t("finalReport")}
         title={`Session #${sessionId}`}
-        subtitle="Strengths, weaknesses, readiness, and a focused study plan."
+        subtitle={t("strengthsWeaknessesPlan")}
       />
 
       {loading ? (
@@ -99,7 +99,7 @@ export default function ReportPage() {
             </div>
 
             <div className="report-meta muted">
-              Report created: {formatDateTime(report?.created_at)}
+              {t("reportCreated")}: {formatDateTime(report?.created_at)}
             </div>
           </section>
 
@@ -107,17 +107,19 @@ export default function ReportPage() {
             <h3>{t("scoreInsights")}</h3>
 
             {!scoreSummary ? (
-              <p className="muted">No score breakdown available.</p>
+              <p className="muted">{t("noScoreBreakdownAvailable")}</p>
             ) : (
               <div className="score-breakdown">
                 <div className="score-breakdown-header">
                   <strong>{t("scoreSummary")}</strong>
-                  <span>{scoreSummary.total_scores} score rows</span>
+                  <span>
+                    {scoreSummary.total_scores} {t("scoreRows")}
+                  </span>
                 </div>
 
                 {scoreSummary.breakdown.map((item) => (
                   <div className="score-row" key={item.category}>
-                    <span>{getCategoryLabel(item.category)}</span>
+                    <span>{getCategoryLabel(item.category, language)}</span>
                     <strong>{formatScore(item.score)}</strong>
                   </div>
                 ))}

@@ -5,7 +5,7 @@ import { useT } from "../utils/i18n";
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
-  const { language } = useAppSettings();
+  const { language, direction } = useAppSettings();
   const t = useT(language);
 
   return (
@@ -13,15 +13,9 @@ export default function HomePage() {
       <section className="hero-section">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <div className="eyebrow">Interview practice that feels modern</div>
-            <h1>
-              Replace confusing prep tools with one clear, premium interview workspace.
-            </h1>
-            <p className="hero-text">
-              Practice realistic backend interviews, coding-style rounds, and project-aware
-              sessions based on your own files. Clean UI, focused workflow, and room to
-              grow into a serious product.
-            </p>
+            <div className="eyebrow">{t("homeEyebrow")}</div>
+            <h1>{t("homeTitle")}</h1>
+            <p className="hero-text">{t("homeDescription")}</p>
 
             <div className="hero-actions">
               {isAuthenticated ? (
@@ -41,44 +35,43 @@ export default function HomePage() {
             </div>
 
             <div className="hero-badges">
-              <span className="badge-soft">Standard</span>
-              <span className="badge-soft">LeetCode Mode</span>
-              <span className="badge-soft">Project Aware</span>
-              <span className="badge-soft">Reports & Progress</span>
+              <span className="badge-soft">{t("standard")}</span>
+              <span className="badge-soft">{t("leetcode")}</span>
+              <span className="badge-soft">{t("projectAware")}</span>
+              <span className="badge-soft">{t("scoreSummary")}</span>
             </div>
           </div>
 
           <div className="hero-panel glass-card">
             <div className="hero-panel-top">
               <span className="status-dot" />
-              <span>Mock interview in progress</span>
+              <span>{t("mockInterviewInProgress")}</span>
             </div>
 
             <div className="chat-preview">
-              <div className="chat-bubble interviewer">
-                Explain the difference between authentication and authorization.
+              <div className="chat-bubble interviewer" dir={direction}>
+                {t("heroQuestion1")}
               </div>
-              <div className="chat-bubble candidate">
-                Authentication verifies identity. Authorization decides what the user is
-                allowed to access.
+              <div className="chat-bubble candidate" dir={direction}>
+                {t("heroAnswer1")}
               </div>
-              <div className="chat-bubble interviewer">
-                Good. How would JWT validation fit into a backend middleware chain?
+              <div className="chat-bubble interviewer" dir={direction}>
+                {t("heroQuestion2")}
               </div>
             </div>
 
             <div className="hero-stats">
               <div>
                 <strong>3</strong>
-                <span>Interview modes</span>
+                <span>{t("interviewModes")}</span>
               </div>
               <div>
                 <strong>Full</strong>
-                <span>Transcript support</span>
+                <span>{t("transcriptSupport")}</span>
               </div>
               <div>
                 <strong>Live</strong>
-                <span>Score feedback</span>
+                <span>{t("liveScoreFeedback")}</span>
               </div>
             </div>
           </div>

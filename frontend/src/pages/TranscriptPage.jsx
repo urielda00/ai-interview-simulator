@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { useAppSettings } from "../hooks/useAppSettings";
+import { useT } from "../utils/i18n";
 import { PageHeader } from "../components/ui/PageHeader";
 import { interviewService } from "../services/interviewService";
 import { formatDateTime } from "../utils/formatters";
@@ -9,6 +11,8 @@ import { getErrorMessage } from "../utils/httpError";
 export default function TranscriptPage() {
   const { sessionId } = useParams();
   const { token } = useAuth();
+  const { language } = useAppSettings();
+  const t = useT(language);
 
   const [transcript, setTranscript] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -35,27 +39,31 @@ export default function TranscriptPage() {
   return (
     <div className="container page-stack">
       <PageHeader
-        eyebrow="Transcript"
+        eyebrow={t("transcript")}
         title={`Session #${sessionId}`}
-        subtitle="Full conversation history for this interview."
+        subtitle={t("fullConversationHistory")}
       />
 
       <div className="panel glass-card">
         {loading ? (
-          <p className="muted">Loading transcript...</p>
+          <p className="muted">{t("loadingTranscript")}</p>
         ) : pageError ? (
           <div className="alert-error">{pageError}</div>
         ) : (
           <div className="conversation-feed">
-            {transcript?.messages?.map((message) => (
-              <div key={message.id} className={`message-row ${message.role}`}>
-                <div className="message-meta">
-                  <span className={`role-badge ${message.role}`}>{message.role}</span>
-                  <span>{formatDateTime(message.created_at)}</span>
+            {transcript?.messages?.length ? (
+              transcript.messages.map((message) => (
+                <div key={message.id} className={`message-row ${message.role}`}>
+                  <div className="message-meta">
+                    <span className={`role-badge ${message.role}`}>{message.role}</span>
+                    <span>{formatDateTime(message.created_at)}</span>
+                  </div>
+                  <div className="message-card">{message.content}</div>
                 </div>
-                <div className="message-card">{message.content}</div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="muted">{t("noTranscriptYet")}</p>
+            )}
           </div>
         )}
       </div>

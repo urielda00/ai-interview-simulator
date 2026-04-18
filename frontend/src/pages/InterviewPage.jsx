@@ -100,8 +100,8 @@ export default function InterviewPage() {
   }, [answerTimings]);
 
   const scoreMeaning = useMemo(() => {
-    return getScoreMeaning(scoreSummary?.average_score || lastAnswerScore || 0);
-  }, [scoreSummary, lastAnswerScore]);
+    return getScoreMeaning(scoreSummary?.average_score || lastAnswerScore || 0, language);
+  }, [scoreSummary, lastAnswerScore, language]);
 
   const handleSubmitAnswer = async (event) => {
     event.preventDefault();
@@ -173,7 +173,7 @@ export default function InterviewPage() {
       <PageHeader
         eyebrow={t("interviewRoom")}
         title={`${session?.track} · ${formatMode(session?.mode)}`}
-        subtitle={`Level: ${session?.level} · Status: ${session?.status} · Created ${formatDateTime(
+        subtitle={`${t("level")}: ${session?.level} · ${t("status")}: ${session?.status} · ${t("createdAt")} ${formatDateTime(
           session?.created_at
         )}`}
         actions={
@@ -196,17 +196,19 @@ export default function InterviewPage() {
             <h2>{t("conversation")}</h2>
             <div className="conversation-meta">
               {lastAnswerScore !== null ? (
-                <div className="score-pill">Last score {formatScore(lastAnswerScore)}</div>
+                <div className="score-pill">
+                  {t("lastScore")} {formatScore(lastAnswerScore)}
+                </div>
               ) : null}
               <div className="score-pill">
-                {t("responseTime")}: {formatDuration(elapsedSeconds)}
+                {t("responseTime")}: {formatDuration(elapsedSeconds, language)}
               </div>
             </div>
           </div>
 
           <div className="conversation-feed conversation-scroll-area">
             {transcript.length === 0 ? (
-              <p className="muted">No transcript yet.</p>
+              <p className="muted">{t("noTranscriptYet")}</p>
             ) : (
               transcript.map((message) => (
                 <div key={message.id} className={`message-row ${message.role}`}>
@@ -226,14 +228,14 @@ export default function InterviewPage() {
               <label>{t("yourAnswer")}</label>
               <textarea
                 rows={6}
-                placeholder="Type your answer clearly and naturally..."
+                placeholder={t("typeAnswerPlaceholder")}
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
               />
               {actionError ? <div className="alert-error">{actionError}</div> : null}
               <div className="answer-actions">
                 <button className="btn btn-primary" type="submit" disabled={submittingAnswer}>
-                  {submittingAnswer ? "Submitting..." : t("sendAnswer")}
+                  {submittingAnswer ? t("submitting") : t("sendAnswer")}
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -241,7 +243,7 @@ export default function InterviewPage() {
                   onClick={handleFinishInterview}
                   disabled={finishingInterview}
                 >
-                  {finishingInterview ? "Finishing..." : t("finishNow")}
+                  {finishingInterview ? t("finishing") : t("finishNow")}
                 </button>
               </div>
             </form>
@@ -256,13 +258,13 @@ export default function InterviewPage() {
         <aside className="side-column">
           <div className="panel glass-card">
             <h3>{t("currentPrompt")}</h3>
-            <p>{latestInterviewerMessage?.content || "No interviewer message yet."}</p>
+            <p>{latestInterviewerMessage?.content || t("noInterviewerMessageYet")}</p>
           </div>
 
           <div className="panel glass-card">
             <h3>{t("scoreSummary")}</h3>
             {!scoreSummary ? (
-              <p className="muted">No score data yet.</p>
+              <p className="muted">{t("noScoreDataYet")}</p>
             ) : (
               <div className="score-breakdown">
                 <div className={`readiness-card readiness-${scoreMeaning.tone}`}>
@@ -276,12 +278,14 @@ export default function InterviewPage() {
 
                 <div className="score-breakdown-header">
                   <strong>{t("scoreMeaning")}</strong>
-                  <span>{scoreSummary.total_scores} score rows</span>
+                  <span>
+                    {scoreSummary.total_scores} {t("scoreRows")}
+                  </span>
                 </div>
 
                 {scoreSummary.breakdown.map((item) => (
                   <div key={item.category} className="score-row">
-                    <span>{getCategoryLabel(item.category)}</span>
+                    <span>{getCategoryLabel(item.category, language)}</span>
                     <strong>{formatScore(item.score)}</strong>
                   </div>
                 ))}
@@ -294,7 +298,7 @@ export default function InterviewPage() {
             <div className="timing-stack">
               <div className="score-row">
                 <span>{t("averageResponseTime")}</span>
-                <strong>{formatDuration(averageResponseTime)}</strong>
+                <strong>{formatDuration(averageResponseTime, language)}</strong>
               </div>
 
               {answerTimings.map((item) => (
@@ -302,7 +306,7 @@ export default function InterviewPage() {
                   <span>
                     {t("answerTiming")} #{item.questionIndex}
                   </span>
-                  <strong>{formatDuration(item.seconds)}</strong>
+                  <strong>{formatDuration(item.seconds, language)}</strong>
                 </div>
               ))}
             </div>

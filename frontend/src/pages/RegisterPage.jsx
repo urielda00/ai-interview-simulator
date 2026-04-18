@@ -74,15 +74,13 @@ export default function RegisterPage() {
                 minLength: { value: 6, message: "Minimum 6 characters" },
               })}
             />
-            {errors.password ? (
-              <span className="field-error">{errors.password.message}</span>
-            ) : null}
+            {errors.password ? <span className="field-error">{errors.password.message}</span> : null}
           </div>
 
           {serverError ? <div className="alert-error">{serverError}</div> : null}
 
           <button className="btn btn-primary" type="submit" disabled={isSubmittingForm}>
-            {isSubmittingForm ? "Creating account..." : t("createAccount")}
+            {isSubmittingForm ? t("creatingAccount") : t("createAccount")}
           </button>
         </form>
 

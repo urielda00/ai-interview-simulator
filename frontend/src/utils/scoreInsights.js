@@ -1,5 +1,53 @@
-export function getScoreMeaning(score) {
+export function getScoreMeaning(score, language = "en") {
   const numeric = Number(score || 0);
+
+  if (language === "he") {
+    if (numeric >= 9) {
+      return {
+        label: "מצוין",
+        readiness: "מוכנות גבוהה מאוד לראיונות",
+        tone: "excellent",
+        explanation:
+          "התשובות שלך כבר נראות ברמה טובה לראיונות אמיתיים. כדאי להמשיך ללטש עקביות, עומק ודיוק בתרחישים מורכבים.",
+        strengths: ["תקשורת ברורה", "מבנה טכני טוב", "אינדיקציה חזקה למוכנות לראיונות"],
+        improvements: ["להעמיק ב-edge cases", "לתרגל tradeoffs מערכתיים", "לחדד תשובות קצרות ומדויקות יותר"],
+      };
+    }
+
+    if (numeric >= 7.5) {
+      return {
+        label: "חזק",
+        readiness: "מוכנות טובה לראיונות",
+        tone: "strong",
+        explanation:
+          "אתה בכיוון טוב. בהרבה ראיונות זה כבר יכול לעבור טוב, אבל יותר עומק, חידוד ודיוק ישפרו משמעותית את הסיכוי.",
+        strengths: ["בסיס טוב", "תשובות יחסית ברורות", "סיגנל חיובי כללי"],
+        improvements: ["לבנות תשובות במבנה ברור יותר", "להוסיף tradeoffs אמיתיים", "להעמיק תחת שאלות המשך"],
+      };
+    }
+
+    if (numeric >= 6) {
+      return {
+        label: "בפיתוח",
+        readiness: "מוכנות חלקית לראיונות",
+        tone: "developing",
+        explanation:
+          "יש בסיס, אבל בראיונות אמיתיים זה עדיין עלול להרגיש לא יציב. כנראה צריך לשפר בהירות, ביטחון ועומק טכני.",
+        strengths: ["יש הבנה התחלתית", "אפשר לראות פוטנציאל"],
+        improvements: ["לתרגל תשובות מלאות ומסודרות", "להפחית ניסוחים עמומים", "לחזק יסודות טכניים"],
+      };
+    }
+
+    return {
+      label: "דורש חיזוק",
+      readiness: "עדיין לא מוכן מספיק לראיונות",
+      tone: "needs-work",
+      explanation:
+        "ברמה הזו ראיונות אמיתיים כנראה יחשפו פערים די מהר. כדאי לחזור ליסודות, למבנה תשובה ולתרגול עקבי לפני ראיונות חשובים.",
+      strengths: ["אתה מזהה מוקדם איפה יש חולשות"],
+      improvements: ["לחזק מושגי בסיס", "לתרגל דיבור ברור תחת לחץ", "לבסס יסודות לפני נושאים מתקדמים"],
+    };
+  }
 
   if (numeric >= 9) {
     return {
@@ -8,16 +56,8 @@ export function getScoreMeaning(score) {
       tone: "excellent",
       explanation:
         "Your answers look strong enough for real interview settings. Keep sharpening consistency and advanced tradeoff depth.",
-      strengths: [
-        "Clear communication",
-        "Good technical structure",
-        "Strong readiness signal for interviews",
-      ],
-      improvements: [
-        "Push deeper into edge cases",
-        "Practice system-level tradeoffs",
-        "Refine concise senior-style answers",
-      ],
+      strengths: ["Clear communication", "Good technical structure", "Strong readiness signal for interviews"],
+      improvements: ["Push deeper into edge cases", "Practice system-level tradeoffs", "Refine concise senior-style answers"],
     };
   }
 
@@ -28,16 +68,8 @@ export function getScoreMeaning(score) {
       tone: "strong",
       explanation:
         "You are on a solid path. In many interview situations this can already come across well, but stronger depth and sharper framing would improve outcomes.",
-      strengths: [
-        "Good baseline understanding",
-        "Reasonably clear answers",
-        "Positive overall signal",
-      ],
-      improvements: [
-        "Answer with clearer structure",
-        "Add real-world tradeoffs",
-        "Improve depth under follow-up questions",
-      ],
+      strengths: ["Good baseline understanding", "Reasonably clear answers", "Positive overall signal"],
+      improvements: ["Answer with clearer structure", "Add real-world tradeoffs", "Improve depth under follow-up questions"],
     };
   }
 
@@ -48,15 +80,8 @@ export function getScoreMeaning(score) {
       tone: "developing",
       explanation:
         "There is a foundation, but in real interviews this level can still feel inconsistent. You likely need stronger clarity, confidence, and technical depth.",
-      strengths: [
-        "Some core understanding exists",
-        "Potential is visible",
-      ],
-      improvements: [
-        "Practice complete structured answers",
-        "Reduce vague explanations",
-        "Study fundamentals more deeply",
-      ],
+      strengths: ["Some core understanding exists", "Potential is visible"],
+      improvements: ["Practice complete structured answers", "Reduce vague explanations", "Study fundamentals more deeply"],
     };
   }
 
@@ -66,18 +91,29 @@ export function getScoreMeaning(score) {
     tone: "needs-work",
     explanation:
       "At this level, real interviews may expose gaps quickly. Focus on fundamentals, structure, and repeated practice before high-stakes interviews.",
-    strengths: [
-      "You are identifying weak areas early",
-    ],
-    improvements: [
-      "Rebuild core concepts",
-      "Practice speaking clearly under pressure",
-      "Review fundamentals before advanced topics",
-    ],
+    strengths: ["You are identifying weak areas early"],
+    improvements: ["Rebuild core concepts", "Practice speaking clearly under pressure", "Review fundamentals before advanced topics"],
   };
 }
 
-export function getCategoryLabel(category) {
+export function getCategoryLabel(category, language = "en") {
+  if (language === "he") {
+    const mapping = {
+      clarity: "בהירות",
+      technical_accuracy: "דיוק טכני",
+      depth: "עומק",
+      tradeoff_reasoning: "חשיבת tradeoffs",
+      correctness: "נכונות",
+      complexity_analysis: "ניתוח סיבוכיות",
+      data_structures: "מבני נתונים",
+      communication: "תקשורת",
+      architecture_reasoning: "חשיבה ארכיטקטונית",
+      maintainability: "תחזוקתיות",
+    };
+
+    return mapping[category] || category;
+  }
+
   const mapping = {
     clarity: "Clarity",
     technical_accuracy: "Technical accuracy",
@@ -94,11 +130,15 @@ export function getCategoryLabel(category) {
   return mapping[category] || category;
 }
 
-export function formatDuration(seconds) {
+export function formatDuration(seconds, language = "en") {
   const total = Math.max(0, Math.round(Number(seconds || 0)));
-
   const minutes = Math.floor(total / 60);
   const remainingSeconds = total % 60;
+
+  if (language === "he") {
+    if (minutes === 0) return `${remainingSeconds} שנ'`;
+    return `${minutes} דק' ${remainingSeconds} שנ'`;
+  }
 
   if (minutes === 0) return `${remainingSeconds}s`;
   return `${minutes}m ${remainingSeconds}s`;

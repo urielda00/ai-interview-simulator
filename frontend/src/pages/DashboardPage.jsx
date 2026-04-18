@@ -95,13 +95,13 @@ export default function DashboardPage() {
       <PageHeader
         eyebrow={t("workspace")}
         title={`${t("welcomeBack")}${user?.full_name ? `, ${user.full_name}` : ""}`}
-        subtitle="Launch a new interview, review past sessions, and track your progress."
+        subtitle={t("launchReviewTrack")}
       />
 
       <section className="stats-grid">
-        <StatCard label="Total sessions" value={stats.total} />
-        <StatCard label="Completed" value={stats.completed} />
-        <StatCard label="Average score" value={stats.average} hint="Across recorded sessions" />
+        <StatCard label={t("totalSessions")} value={stats.total} />
+        <StatCard label={t("completed")} value={stats.completed} />
+        <StatCard label={t("averageScore")} value={stats.average} hint={t("acrossRecordedSessions")} />
       </section>
 
       <section className="dashboard-grid">
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                 value={createForm.track}
                 onChange={(e) => setCreateForm((prev) => ({ ...prev, track: e.target.value }))}
               >
-                <option value="backend">Backend</option>
+                <option value="backend">{t("backend")}</option>
               </select>
             </div>
 
@@ -126,9 +126,9 @@ export default function DashboardPage() {
                 value={createForm.level}
                 onChange={(e) => setCreateForm((prev) => ({ ...prev, level: e.target.value }))}
               >
-                <option value="junior">Junior</option>
-                <option value="mid">Mid</option>
-                <option value="senior">Senior</option>
+                <option value="junior">{t("junior")}</option>
+                <option value="mid">{t("mid")}</option>
+                <option value="senior">{t("senior")}</option>
               </select>
             </div>
 
@@ -138,9 +138,9 @@ export default function DashboardPage() {
                 value={createForm.mode}
                 onChange={(e) => setCreateForm((prev) => ({ ...prev, mode: e.target.value }))}
               >
-                <option value="standard">Standard</option>
-                <option value="leetcode">LeetCode</option>
-                <option value="project_aware">Project Aware</option>
+                <option value="standard">{t("standard")}</option>
+                <option value="leetcode">{t("leetcode")}</option>
+                <option value="project_aware">{t("projectAware")}</option>
               </select>
             </div>
 
@@ -155,7 +155,7 @@ export default function DashboardPage() {
             {createError ? <div className="alert-error">{createError}</div> : null}
 
             <button className="btn btn-primary" type="submit" disabled={creatingSession}>
-              {creatingSession ? "Preparing session..." : t("createAndStart")}
+              {creatingSession ? t("preparingSession") : t("createAndStart")}
             </button>
           </form>
         </div>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
           <h2>{t("previousSessions")}</h2>
 
           {loadingHistory ? (
-            <p className="muted">Loading sessions...</p>
+            <p className="muted">{t("loadingSessions")}</p>
           ) : pageError ? (
             <div className="alert-error">{pageError}</div>
           ) : history.length === 0 ? (
@@ -189,7 +189,7 @@ export default function DashboardPage() {
                   {session.report_summary ? (
                     <p className="session-summary">{session.report_summary}</p>
                   ) : (
-                    <p className="session-summary muted">No report summary yet.</p>
+                    <p className="session-summary muted">{t("noReportSummaryYet")}</p>
                   )}
 
                   <div className="session-actions">
