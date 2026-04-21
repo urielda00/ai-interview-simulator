@@ -1,0 +1,289 @@
+מבנה פרונט
+
+src/
+  app/
+    providers.jsx
+    router.jsx
+
+  components/
+    common/
+      ProtectedRoute.jsx
+      PublicOnlyRoute.jsx
+    layout/
+      AppShell.jsx
+    ui/
+      EmptyState.jsx
+      FullPageLoader.jsx
+      PageHeader.jsx
+      StatCard.jsx
+
+  hooks/
+    useAuth.jsx
+    useAppSettings.jsx
+    useDashboard.js
+    useInterview.js
+    useReport.js
+
+  pages/
+    HomePage.jsx
+    LoginPage.jsx
+    RegisterPage.jsx
+    DashboardPage.jsx
+    InterviewPage.jsx
+    TranscriptPage.jsx
+    ReportPage.jsx
+    NotFoundPage.jsx
+
+  services/
+    apiClient.js
+    authService.js
+    sessionService.js
+    interviewService.js
+    uploadService.js
+    reportService.js
+
+  styles/
+    global.css
+
+  utils/
+    formatters.js
+    httpError.js
+    i18n.js
+    scoreInsights.js
+
+  App.jsx
+  main.jsx
+
+חיבורים עיקריים
+
+כניסה לאפליקציה
+main.jsx
+- טוען global.css
+- עוטף ב-AppProviders
+- מפעיל RouterProvider
+
+app/providers.jsx
+- עוטף את כל האפליקציה ב:
+  - AuthProvider
+  - AppSettingsProvider
+
+app/router.jsx
+- מגדיר routes
+- משתמש ב:
+  - AppShell
+  - ProtectedRoute
+  - PublicOnlyRoute
+
+auth + settings
+hooks/useAuth.jsx
+- מנהל token
+- login/register/logout
+- fetch /auth/me
+- שומר token ב-localStorage
+
+hooks/useAppSettings.jsx
+- מנהל שפה he/en
+- קובע dir=ltr/rtl
+- שומר הגדרות ב-localStorage
+
+layout + route guards
+components/layout/AppShell.jsx
+- header עליון
+- ניווט
+- כפתור החלפת שפה
+- logout
+- Outlet לדפים
+
+components/common/ProtectedRoute.jsx
+- מגן על דפים למשתמש מחובר
+
+components/common/PublicOnlyRoute.jsx
+- חוסם login/register אם המשתמש כבר מחובר
+
+hooks חדשים
+hooks/useDashboard.js
+- כל לוגיקת הדשבורד
+- load history
+- stats
+- create session
+- onboarding local
+- filters local
+
+hooks/useInterview.js
+- כל לוגיקת מסך interview
+- transcript
+- score summary
+- autosave
+- timing
+- answer review map
+- latest answer review
+
+hooks/useReport.js
+- כל לוגיקת דוח אם עשית ריפקטור גם שם
+
+pages
+HomePage.jsx
+- דף בית / hero / CTA
+- משתמש ב-useAuth, useAppSettings, useT
+
+LoginPage.jsx
+- התחברות
+- משתמש ב-useAuth
+
+RegisterPage.jsx
+- הרשמה
+- משתמש ב-useAuth
+
+DashboardPage.jsx
+- יצירת session
+- מציג history
+- שולח language ב-POST /sessions/
+- onboarding קצר בפעם ראשונה
+- filters ל-history:
+  - search
+  - mode
+  - status
+- progress snapshot
+- readiness / trend / dominant mode
+
+InterviewPage.jsx
+- מסך ראיון חי
+- transcript
+- answer submit
+- finish interview
+- score summary
+- answer timing local
+- autosave לטיוטה
+- latest answer review
+- review מתחת לתשובות מועמד
+
+TranscriptPage.jsx
+- תמלול מלא של session
+- answer reviews מתחת לתשובות מועמד
+- score insights בצד
+
+ReportPage.jsx
+- דוח סופי
+- score meaning + insights
+- readiness card
+- top strength areas
+- focus areas
+
+NotFoundPage.jsx
+- 404
+
+services
+services/apiClient.js
+- axios instance
+- baseURL
+- שולח Accept-Language בכל בקשה
+- helper של auth headers
+
+services/authService.js
+- /auth/register
+- /auth/login
+- /auth/me
+
+services/sessionService.js
+- /sessions/
+- /sessions/{id}
+- /history/sessions
+- /history/scores/{id}
+
+services/interviewService.js
+- /interviews/start
+- /interviews/answer
+- /interviews/finish/{id}
+- /interviews/transcript/{id}
+- answer now returns review
+- transcript now returns answer_reviews
+
+services/uploadService.js
+- /uploads/project-files/{session_id}
+
+services/reportService.js
+- /reports/{session_id}
+
+utils
+utils/i18n.js
+- כל הטקסטים המקומיים של UI
+- useT(language)
+- updated with:
+  - onboarding strings
+  - filters strings
+  - answer review strings
+  - readiness/dashboard/report copy
+
+utils/scoreInsights.js
+- משמעות ציונים
+- category labels
+- format duration
+- top/bottom categories
+- trend label
+- dominant mode
+- תומך עברית/אנגלית
+
+utils/formatters.js
+- formatDateTime
+- formatMode
+- formatScore
+
+utils/httpError.js
+- חילוץ הודעת שגיאה מ-axios error
+
+ui components
+PageHeader.jsx
+- כותרות אחידות לדפים
+
+StatCard.jsx
+- כרטיסי סטטיסטיקה
+
+EmptyState.jsx
+- מצבי empty
+
+FullPageLoader.jsx
+- loading למסך מלא
+
+CSS
+styles/global.css
+- כל הסטייל הגלובלי
+- dark premium theme
+- responsive
+- RTL tweaks
+- hero/dashboard/interview/report layouts
+
+flow קצר
+main.jsx -> providers.jsx -> router.jsx
+router.jsx -> AppShell.jsx + pages
+pages משתמשים ב:
+- hooks
+- services
+- utils
+- ui components
+
+endpoints שהפרונט משתמש בהם
+POST /auth/register
+POST /auth/login
+GET /auth/me
+POST /sessions/
+GET /sessions/
+GET /sessions/{id}
+POST /interviews/start
+POST /interviews/answer
+GET /interviews/transcript/{id}
+POST /interviews/finish/{id}
+POST /uploads/project-files/{session_id}
+GET /reports/{session_id}
+GET /history/sessions
+GET /history/scores/{session_id}
+
+מה נוסף לאחרונה
+- score meaning חכם יותר
+- dashboard insights
+- onboarding קצר
+- history filters
+- autosave לתשובה
+- transcript insights
+- report insights
+- per-answer review אישי יותר
+- separation טוב יותר בין view ל-logic דרך hooks

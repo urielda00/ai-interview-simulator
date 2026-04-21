@@ -1,52 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { useAppSettings } from "../hooks/useAppSettings";
-import { useT } from "../utils/i18n";
 import { PageHeader } from "../components/ui/PageHeader";
-import { reportService } from "../services/reportService";
-import { sessionService } from "../services/sessionService";
 import { formatDateTime, formatScore } from "../utils/formatters";
-import { getErrorMessage } from "../utils/httpError";
-import { getCategoryLabel, getScoreMeaning } from "../utils/scoreInsights";
+import { getCategoryLabel } from "../utils/scoreInsights";
+import { useReport } from "../hooks/useReport";
 
 export default function ReportPage() {
-  const { sessionId } = useParams();
-  const { token } = useAuth();
-  const { language } = useAppSettings();
-  const t = useT(language);
-
-  const [report, setReport] = useState(null);
-  const [scoreSummary, setScoreSummary] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [pageError, setPageError] = useState("");
-
-  useEffect(() => {
-    const run = async () => {
-      setLoading(true);
-      setPageError("");
-
-      try {
-        const [reportData, scoreData] = await Promise.all([
-          reportService.getReport(token, sessionId),
-          sessionService.getScoreSummary(token, sessionId).catch(() => null),
-        ]);
-
-        setReport(reportData);
-        setScoreSummary(scoreData);
-      } catch (error) {
-        setPageError(getErrorMessage(error, "Failed to load report."));
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    run();
-  }, [token, sessionId]);
-
-  const scoreMeaning = useMemo(() => {
-    return getScoreMeaning(scoreSummary?.average_score || 0, language);
-  }, [scoreSummary, language]);
+  const {
+    t,
+    sessionId,
+    language,
+    report,
+    scoreSummary,
+    loading,
+    pageError,
+    scoreMeaning,
+    topStrengthAreas,
+    focusAreas,
+  } = useReport();
 
   return (
     <div className="container page-stack">
@@ -75,6 +44,28 @@ export default function ReportPage() {
                 </div>
                 <div className="muted">{scoreMeaning.readiness}</div>
                 <p>{scoreMeaning.explanation}</p>
+              </div>
+            ) : null}
+
+            {topStrengthAreas.length ? (
+              <div className="report-block">
+                <h3>{t("topStrengthAreas")}</h3>
+                <ul className="insight-list">
+                  {topStrengthAreas.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {focusAreas.length ? (
+              <div className="report-block">
+                <h3>{t("focusAreas")}</h3>
+                <ul className="insight-list">
+                  {focusAreas.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
               </div>
             ) : null}
 

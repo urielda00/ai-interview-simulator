@@ -1,0 +1,115 @@
+Behavioral interview mode
+- שאלות STAR
+- פידבק על מבנה תשובה
+- בהירות
+- ownership
+- impact
+- ניסוח אישי ולא רובוטי
+
+Weakness-focused training plan
+- אחרי כמה ראיונות המערכת תבנה מסלול תרגול אישי לפי חולשות שחזרו
+- JWT
+- communication
+- tradeoffs
+- system thinking
+- project explanation
+
+Answer replay + critique
+- המשתמש רואה תשובה קודמת שלו
+- מה היה טוב
+- מה היה חלש
+- איך לנסח טוב יותר
+- גרסה טובה יותר
+- גרסה קצרה יותר
+- גרסה חזקה לראיון
+
+Model answer generation
+- אחרי שאלה להציג benchmark answer חזק להשוואה
+
+Interview Arena
+- hub אחד לכל מצבי האימון:
+  - technical Q&A
+  - leetcode
+  - project defense
+  - behavioral
+  - rapid-fire
+  - mock pressure round
+
+Project-aware deep mode
+- לא רק upload file
+- כמה קבצים
+- עץ קבצים
+- highlight לקטעי קוד
+- שאלות על architecture
+- tradeoffs
+- bottlenecks
+- technical debt
+
+Follow-up challenge mode
+- אם המשתמש ענה טוב, המערכת תקשה מיד
+- edge cases
+- scale
+- security
+- tradeoffs
+
+Role-specific interview packs
+- backend
+- frontend
+- fullstack
+- data
+- DevOps
+- junior
+- mid
+- senior
+
+Company-style presets
+- startup
+- enterprise
+- product company
+- infra team
+- big tech style
+
+System design mode
+- bottlenecks
+- scaling
+- DB choices
+- monitoring
+- tradeoffs
+
+Resume-aware interview mode
+- העלאת קורות חיים
+- שאלות על מה שבאמת כתוב בהם
+- proof over buzzwords
+
+Portfolio-aware mode
+- קישור בין פרויקטים מהפורטפוליו לשאלות על ownership, architecture, decisions
+
+Detailed speaking analytics
+- filler words
+- hedge words
+- answer length
+- clarity
+- confidence
+- pacing
+
+Shareable interview report
+- export report
+- export transcript
+- progression snapshot
+
+Voice interview
+- STT
+- TTS
+- spoken feedback
+- communication analysis
+
+Live coding interview mode
+- editor
+- follow-up questions
+- code critique
+
+Recruiter dashboard
+- trends
+- weak categories
+- improvement over time
+- mode performance

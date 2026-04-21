@@ -143,3 +143,53 @@ export function formatDuration(seconds, language = "en") {
   if (minutes === 0) return `${remainingSeconds}s`;
   return `${minutes}m ${remainingSeconds}s`;
 }
+
+export function getTopCategories(breakdown = [], language = "en", limit = 2) {
+  return [...breakdown]
+    .filter((item) => typeof item?.score === "number")
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map((item) => getCategoryLabel(item.category, language));
+}
+
+export function getBottomCategories(breakdown = [], language = "en", limit = 2) {
+  return [...breakdown]
+    .filter((item) => typeof item?.score === "number")
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map((item) => getCategoryLabel(item.category, language));
+}
+
+export function getTrendLabel(current, previous, language = "en") {
+  const curr = Number(current);
+  const prev = Number(previous);
+
+  if (!Number.isFinite(curr) || !Number.isFinite(prev)) {
+    return language === "he" ? "אין מספיק נתונים" : "Not enough data";
+  }
+
+  const diff = curr - prev;
+
+  if (diff >= 0.4) {
+    return language === "he" ? "במגמת שיפור" : "Improving";
+  }
+
+  if (diff <= -0.4) {
+    return language === "he" ? "יש ירידה לאחרונה" : "Recent drop";
+  }
+
+  return language === "he" ? "יציב יחסית" : "Relatively stable";
+}
+
+export function getDominantMode(history = [], language = "en") {
+  const counts = history.reduce((acc, item) => {
+    const mode = item?.mode || "standard";
+    acc[mode] = (acc[mode] || 0) + 1;
+    return acc;
+  }, {});
+
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+  if (!top) return language === "he" ? "אין מספיק נתונים" : "Not enough data";
+
+  return top[0];
+}

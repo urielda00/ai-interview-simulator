@@ -1,0 +1,130 @@
+מעטפת הכנה לראיון
+
+מועמד לפני תקופת ראיונות צריך בעיקר:
+- לדעת מה ללמוד
+- לזכור חומר
+- לתרגל שליפה מהירה
+- לענות כמו בן אדם בראיון
+- לזהות חולשות
+- להרגיש התקדמות וביטחון
+
+מה כבר יש במוצר
+1. Interview Simulator
+- backend / leetcode / project-aware
+- שאלות לפי mode
+- follow-up AI בסיסי
+- scoring
+- report
+- transcript
+- personal answer review
+
+2. Progress layer
+- dashboard
+- readiness
+- trend
+- top mode
+- history
+- score meaning
+
+3. Personal practice feel
+- onboarding קצר
+- autosave
+- per-answer encouragement
+- focus areas
+
+מה עדיין כדאי להוסיף
+1. Weakness Map
+- אחרי כמה סשנים המערכת תגיד:
+  - אתה חלש ב-JWT
+  - אתה לא מסביר trade-offs טוב
+  - אתה עונה קצר מדי
+  - אתה נשמע לא מספיק בטוח
+
+2. Flashcards / Memory Drills
+- concept ↔ definition
+- tech ↔ use case
+- question ↔ ideal answer skeleton
+
+3. Rapid Recall Mode
+- 30-60 שניות לשאלה
+- מה זה CORS
+- מה זה index
+- מתי Redis עוזר
+- process vs thread
+
+4. Behavioral Interview Trainer
+- ספר לי על פרויקט
+- קונפליקט בצוות
+- טעות שעשית
+- איך למדת טכנולוגיה חדשה
+- פידבק על clarity / confidence / structure
+
+5. Personalized Study Plan
+- 7 ימים לראיון
+- 14 ימים
+- חודש
+- לפי role target
+
+6. Answer Rewriter
+- גרסה חלשה
+- גרסה טובה
+- גרסה חזקה
+- גרסה יותר קצרה
+- גרסה יותר מקצועית
+
+7. Mock Whiteboard / Problem Breakdown
+- מה הבעיה
+- brute force
+- optimization
+- complexity
+- edge cases
+
+8. Confidence Trainer
+- תשובה ארוכה מדי
+- מתחמק
+- לא עונה לשאלה
+- חסר מבנה
+
+9. Daily Drill
+- 3 שאלות מהירות
+- 5 כרטיסיות
+- behavioral אחת
+- recap לחולשה
+
+10. Company-style Modes
+- startup
+- enterprise
+- product company
+- big tech
+- HR screening
+
+11. Match Game / Speed Quiz / Trade-off Game
+- mini games קצרים לתרגול
+
+12. Interview Boss Battle
+- סשן קשה במיוחד
+- follow-ups
+- time pressure
+- no hints
+
+13. Practice / Drill / Memory / Projects / Progress
+- חלוקה עתידית טובה לאזורים במוצר
+
+סדר פיתוח נכון מכאן
+שלב הבא הכי נכון:
+- behavioral mode
+- weakness map
+- toasts
+- mobile polish
+
+אחרי זה:
+- answer rewrite
+- daily drill
+- interview arena
+
+אחר כך:
+- voice
+- live coding
+- system design
+- resume aware
+- company presets

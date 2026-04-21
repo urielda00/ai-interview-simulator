@@ -1,5 +1,6 @@
-from pydantic import BaseModel
 from datetime import datetime
+
+from pydantic import BaseModel
 
 
 class SessionHistoryItem(BaseModel):
@@ -13,6 +14,9 @@ class SessionHistoryItem(BaseModel):
     report_id: int | None = None
     report_summary: str | None = None
     average_score: float | None = None
+    top_category: str | None = None
+    bottom_category: str | None = None
+    recent_trend: str | None = None
 
     class Config:
         from_attributes = True

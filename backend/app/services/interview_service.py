@@ -6,12 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.models.interview_session import InterviewSession
 from app.repositories.message_repository import create_message, get_messages_by_session_id
+from app.repositories.score_repository import create_score, get_scores_by_session_id
 from app.repositories.session_repository import get_session_by_id_and_user_id
-from app.repositories.score_repository import create_score
 from app.repositories.upload_repository import get_files_by_session_id
 from app.services.ai_service import generate_followup_with_openai
-from app.services.scoring_service import score_answer
 from app.services.report_service import build_session_report
+from app.services.scoring_service import score_answer
 
 
 logger = logging.getLogger(__name__)
@@ -127,6 +127,146 @@ def _get_owned_session(db: Session, session_id: int, current_user_id: int):
 
 def _lang(session: InterviewSession) -> str:
     return session.language if getattr(session, "language", None) in {"en", "he"} else "en"
+
+
+def _category_label(category: str, language: str) -> str:
+    if language == "he":
+        mapping = {
+            "clarity": "בהירות",
+            "technical_accuracy": "דיוק טכני",
+            "depth": "עומק",
+            "tradeoff_reasoning": "חשיבת tradeoffs",
+            "correctness": "נכונות",
+            "complexity_analysis": "ניתוח סיבוכיות",
+            "data_structures": "מבני נתונים",
+            "communication": "תקשורת",
+            "architecture_reasoning": "חשיבה ארכיטקטונית",
+            "maintainability": "תחזוקתיות",
+        }
+        return mapping.get(category, category)
+
+    mapping = {
+        "clarity": "clarity",
+        "technical_accuracy": "technical accuracy",
+        "depth": "depth",
+        "tradeoff_reasoning": "tradeoff reasoning",
+        "correctness": "correctness",
+        "complexity_analysis": "complexity analysis",
+        "data_structures": "data structures",
+        "communication": "communication",
+        "architecture_reasoning": "architecture reasoning",
+        "maintainability": "maintainability",
+    }
+    return mapping.get(category, category)
+
+
+def _split_feedback_text(text: str) -> list[str]:
+    cleaned = (text or "").strip()
+    if not cleaned:
+        return []
+
+    raw_parts = []
+    for chunk in cleaned.replace("•", ".").replace("\n", ".").split("."):
+        part = chunk.strip(" -\t")
+        if part:
+            raw_parts.append(part)
+
+    return raw_parts[:3]
+
+
+def _friendly_summary(score: float, language: str) -> tuple[str, str]:
+    if language == "he":
+        if score >= 8.5:
+            return "excellent", "יש פה תשובה שבאמת נשמעת חזקה ובטוחה."
+        if score >= 7:
+            return "strong", "יש פה כיוון טוב, וזה כבר מרגיש די משכנע."
+        if score >= 5.5:
+            return "developing", "יש בסיס טוב, אבל עדיין חסר קצת עומק או חדות."
+        return "needs-work", "יש כאן התחלה, אבל כרגע זה עוד לא נשמע מספיק חזק לראיון."
+
+    if score >= 8.5:
+        return "excellent", "This already sounds strong, clear, and interview-ready."
+    if score >= 7:
+        return "strong", "There is a solid direction here, and it already feels fairly convincing."
+    if score >= 5.5:
+        return "developing", "There is a good base here, but it still needs more depth or sharpness."
+    return "needs-work", "There is a starting point here, but it does not sound strong enough yet for an interview."
+
+
+def _default_worked_points(top_categories: list[str], language: str) -> list[str]:
+    if language == "he":
+        if not top_categories:
+            return ["יש פה בכל זאת בסיס שאפשר לבנות עליו."]
+        return [f"יחסית היה לך צד חזק יותר ב-{label}." for label in top_categories[:2]]
+
+    if not top_categories:
+        return ["There is still a baseline here that you can build on."]
+    return [f"You came across relatively stronger on {label}." for label in top_categories[:2]]
+
+
+def _default_improve_points(bottom_categories: list[str], language: str) -> list[str]:
+    if language == "he":
+        if not bottom_categories:
+            return ["הייתי מחזק עוד קצת את הדיוק והעומק."]
+        return [f"כדאי לחזק עוד את {label} בתשובה הבאה." for label in bottom_categories[:2]]
+
+    if not bottom_categories:
+        return ["I would tighten the depth and precision a bit more."]
+    return [f"I would strengthen {label} a bit more in the next answer." for label in bottom_categories[:2]]
+
+
+def _build_answer_review(
+    message_id: int,
+    breakdown: list[dict],
+    language: str,
+    strengths_text: str = "",
+    weaknesses_text: str = "",
+    reason_text: str = "",
+) -> dict:
+    ordered = sorted(breakdown, key=lambda item: item["score"], reverse=True)
+    average_score = round(sum(item["score"] for item in breakdown) / len(breakdown), 2) if breakdown else 0.0
+    tone, base_summary = _friendly_summary(average_score, language)
+
+    top_categories = [_category_label(item["category"], language) for item in ordered[:2]]
+    bottom_categories = [_category_label(item["category"], language) for item in ordered[-2:]]
+
+    worked_points = _split_feedback_text(strengths_text) or _default_worked_points(top_categories, language)
+    improve_points = _split_feedback_text(weaknesses_text) or _default_improve_points(bottom_categories, language)
+
+    if language == "he":
+        if reason_text.strip():
+            summary = f"{base_summary} {reason_text.strip()}"
+        else:
+            summary = base_summary
+
+        encouragement_map = {
+            "excellent": "תמשיך בדיוק בכיוון הזה - זה כבר נשמע בשל מאוד.",
+            "strong": "עוד קצת עומק ודוגמאות, וזה יכול להישמע ממש חזק.",
+            "developing": "יש על מה לבנות, ועכשיו צריך להפוך את זה ליותר חד ומשכנע.",
+            "needs-work": "זה בסדר - עדיף לזהות את הפער עכשיו ולחדד אותו בסשנים הבאים.",
+        }
+    else:
+        if reason_text.strip():
+            summary = f"{base_summary} {reason_text.strip()}"
+        else:
+            summary = base_summary
+
+        encouragement_map = {
+            "excellent": "Keep going in this direction - it already sounds mature and convincing.",
+            "strong": "A bit more depth and a sharper example could make this genuinely strong.",
+            "developing": "There is something to build on here, and the next step is making it tighter and more convincing.",
+            "needs-work": "That is okay - better to catch the gap here and sharpen it in the next rounds.",
+        }
+
+    return {
+        "message_id": message_id,
+        "overall_score": average_score,
+        "tone": tone,
+        "summary": summary.strip(),
+        "what_worked": worked_points[:3],
+        "improve_next": improve_points[:3],
+        "encouragement": encouragement_map[tone],
+    }
 
 
 def get_question_list(session: InterviewSession) -> list[str]:
@@ -336,6 +476,15 @@ def answer_interview(db: Session, session_id: int, answer: str, current_user_id:
             confidence=breakdown_item.get("confidence"),
         )
 
+    review = _build_answer_review(
+        message_id=candidate_message.id,
+        breakdown=scoring_result["breakdown"],
+        language=language,
+        strengths_text=scoring_result.get("strengths", ""),
+        weaknesses_text=scoring_result.get("weaknesses", ""),
+        reason_text=scoring_result.get("reason", ""),
+    )
+
     next_index = session.current_question_index + 1
     question_count = get_question_count(session, db)
 
@@ -351,6 +500,7 @@ def answer_interview(db: Session, session_id: int, answer: str, current_user_id:
             "next_question": "Interview completed." if language == "en" else "הראיון הושלם.",
             "status": session.status,
             "score": scoring_result["score"],
+            "review": review,
         }
 
     next_question = build_next_question(session, next_index, db, cleaned_answer)
@@ -367,6 +517,7 @@ def answer_interview(db: Session, session_id: int, answer: str, current_user_id:
         "next_question": next_question,
         "status": session.status,
         "score": scoring_result["score"],
+        "review": review,
     }
 
 
@@ -390,9 +541,40 @@ def finish_interview(db: Session, session_id: int, current_user_id: int):
 def get_session_transcript(db: Session, session_id: int, current_user_id: int):
     session = _get_owned_session(db, session_id, current_user_id)
     messages = get_messages_by_session_id(db, session_id)
+    scores = get_scores_by_session_id(db, session_id)
+
+    grouped_scores = {}
+    for score in scores:
+        if score.message_id is None:
+            continue
+        grouped_scores.setdefault(score.message_id, []).append(
+            {
+                "category": score.category,
+                "score": score.score,
+                "confidence": score.confidence,
+            }
+        )
+
+    answer_reviews = []
+    for message in messages:
+        if message.role != "candidate":
+            continue
+
+        breakdown = grouped_scores.get(message.id, [])
+        if not breakdown:
+            continue
+
+        answer_reviews.append(
+            _build_answer_review(
+                message_id=message.id,
+                breakdown=breakdown,
+                language=_lang(session),
+            )
+        )
 
     return {
         "session_id": session.id,
         "status": session.status,
         "messages": messages,
+        "answer_reviews": answer_reviews,
     }

@@ -1,0 +1,277 @@
+Backend structure summary
+
+Top-level flow
+- app/main.py
+  - boots FastAPI
+  - adds CORS
+  - includes app/api/router.py
+  - configures logging
+
+- app/api/router.py
+  - central router
+  - wires all endpoint modules under /api/v1
+
+Core layer
+- app/core/config.py
+  - env/settings loader
+  - DB URL
+  - JWT settings
+  - OpenAI settings
+  - upload dir
+
+- app/core/database.py
+  - SQLAlchemy engine
+  - SessionLocal
+  - Base
+  - get_db()
+
+- app/core/security.py
+  - password hash/verify
+  - JWT token creation
+
+- app/core/i18n.py
+  - language normalization
+  - Hebrew/English helpers
+  - LLM language instructions
+
+API layer
+- app/api/deps.py
+  - get_current_user from JWT
+  - shared auth dependency for protected endpoints
+
+- app/api/v1/endpoints/auth.py
+  - register
+  - login
+  - me
+  - get user by id
+
+- app/api/v1/endpoints/health.py
+  - health check
+
+- app/api/v1/endpoints/sessions.py
+  - create session
+  - list my sessions
+  - get owned session
+  - resolves language on session creation
+
+- app/api/v1/endpoints/interviews.py
+  - start interview
+  - answer interview
+  - finish interview
+  - transcript
+  - now returns per-answer review in answer response
+  - transcript now returns answer_reviews array
+
+- app/api/v1/endpoints/reports.py
+  - get owned session report
+
+- app/api/v1/endpoints/uploads.py
+  - upload project files
+  - list uploaded files for session
+
+- app/api/v1/endpoints/history.py
+  - history/sessions
+  - history/scores/{session_id}
+
+Models layer
+- app/models/user.py
+  - users table
+
+- app/models/interview_session.py
+  - interview_sessions table
+  - includes user_id, track, level, mode, language, status, current_question_index
+
+- app/models/message.py
+  - session_messages table
+
+- app/models/score.py
+  - question_scores table
+  - stores session_id + message_id + category + score + confidence
+  - message_id is now used to build per-answer review without DB changes
+
+- app/models/report.py
+  - session_reports table
+
+- app/models/uploaded_file.py
+  - uploaded_files table
+
+- app/models/__init__.py
+  - imports all models so metadata is registered
+
+Repositories layer
+- app/repositories/user_repository.py
+  - get/create user
+
+- app/repositories/session_repository.py
+  - create/get/list sessions
+  - ownership queries by session_id + user_id
+
+- app/repositories/message_repository.py
+  - create/list transcript messages
+
+- app/repositories/score_repository.py
+  - create/list scores
+  - get scores by session
+  - used for score summary + answer-level review
+
+- app/repositories/report_repository.py
+  - create/get reports
+
+- app/repositories/upload_repository.py
+  - create/list uploaded files
+
+Services layer
+- app/services/auth_service.py
+  - register/login logic
+  - uses security + user_repository
+
+- app/services/session_service.py
+  - create session
+  - fetch owned session
+  - fetch user sessions
+
+- app/services/ai_service.py
+  - OpenAI calls
+  - follow-up generation
+  - AI scoring
+  - AI report generation
+  - language-aware prompts
+  - score normalization
+
+- app/services/scoring_service.py
+  - scoring orchestrator
+  - AI path + fallback path
+  - rubric breakdown per mode
+  - fallback strengths/weaknesses improved
+  - better local feedback when AI is unavailable
+
+- app/services/interview_service.py
+  - main interview engine
+  - question banks
+  - start/answer/finish logic
+  - transcript
+  - ownership checks
+  - uses ai_service, scoring_service, report_service, repositories
+  - builds personal per-answer review
+  - answer response now includes:
+    - score
+    - review:
+      - message_id
+      - overall_score
+      - tone
+      - summary
+      - what_worked
+      - improve_next
+      - encouragement
+  - transcript response now includes answer_reviews for candidate messages
+
+- app/services/report_service.py
+  - builds final report
+  - AI report or fallback report
+  - localized fallback report text
+  - fallback report improved with:
+    - top stronger categories
+    - weaker categories
+    - more actionable study plan
+
+- app/services/upload_service.py
+  - saves files to disk
+  - lists session files
+
+- app/services/history_service.py
+  - dashboard history aggregation
+  - score summary aggregation
+  - now returns richer session history:
+    - average_score
+    - top_category
+    - bottom_category
+    - recent_trend
+  - score summary now returns:
+    - average_score
+    - breakdown
+    - total_scores
+    - top_category
+    - bottom_category
+
+Schemas layer
+- app/schemas/auth.py
+  - auth request/response DTOs
+
+- app/schemas/session.py
+  - session create/response DTOs
+
+- app/schemas/interview.py
+  - start/answer/finish/transcript DTOs
+  - includes AnswerReviewResponse
+  - answer endpoint returns review
+  - transcript endpoint returns answer_reviews
+
+- app/schemas/report.py
+  - report response DTO
+
+- app/schemas/upload.py
+  - uploaded file response DTO
+
+- app/schemas/score.py
+  - score summary DTOs
+
+- app/schemas/history.py
+  - history list DTOs
+  - includes top_category / bottom_category / recent_trend
+
+Migrations / docs / tests
+- alembic/env.py
+  - Alembic wiring to SQLAlchemy metadata
+
+- alembic/versions/0001_initial_schema.py
+  - initial schema migration
+
+- alembic/versions/0002_add_session_language.py
+  - adds session language
+
+- alembic.ini
+  - Alembic config
+
+- docs/endpoints_spec.md
+  - API contract for frontend
+  - should be updated if you want docs fully synced with new answer review fields
+
+- docs/server_overview.md
+  - server summary
+
+- docs/db_plan.md
+  - DB summary
+
+- run_e2e_check.py
+  - end-to-end verification script
+
+Main dependency map
+- endpoints -> services
+- services -> repositories
+- repositories -> models
+- services/auth -> core/security
+- services/* -> core/config / core/i18n when needed
+- main -> api/router
+- alembic/env.py -> core/database + models
+
+What was added recently
+- richer fallback scoring
+- richer fallback report generation
+- smarter history aggregation
+- answer-level personal review
+- transcript-level answer reviews
+- no DB schema change needed
+- no Alembic migration needed for these changes
+
+Most important files if starting a new chat
+- app/services/interview_service.py
+- app/services/ai_service.py
+- app/services/scoring_service.py
+- app/services/report_service.py
+- app/services/history_service.py
+- app/repositories/score_repository.py
+- app/api/v1/endpoints/interviews.py
+- app/api/v1/endpoints/history.py
+- app/schemas/interview.py
+- app/schemas/history.py
+- app/schemas/report.py

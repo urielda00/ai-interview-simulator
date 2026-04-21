@@ -1,94 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { useAppSettings } from "../hooks/useAppSettings";
-import { useT } from "../utils/i18n";
+import { Link } from "react-router-dom";
 import { PageHeader } from "../components/ui/PageHeader";
 import { StatCard } from "../components/ui/StatCard";
 import { EmptyState } from "../components/ui/EmptyState";
-import { sessionService } from "../services/sessionService";
-import { interviewService } from "../services/interviewService";
-import { uploadService } from "../services/uploadService";
 import { formatDateTime, formatMode, formatScore } from "../utils/formatters";
-import { getErrorMessage } from "../utils/httpError";
-
-const defaultForm = {
-  track: "backend",
-  level: "junior",
-  mode: "standard",
-};
+import { getScoreMeaning } from "../utils/scoreInsights";
+import { useDashboard } from "../hooks/useDashboard";
 
 export default function DashboardPage() {
-  const { token, user } = useAuth();
-  const { language } = useAppSettings();
-  const t = useT(language);
-  const navigate = useNavigate();
-
-  const [createForm, setCreateForm] = useState(defaultForm);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-  const [creatingSession, setCreatingSession] = useState(false);
-  const [pageError, setPageError] = useState("");
-  const [createError, setCreateError] = useState("");
-
-  const loadHistory = async () => {
-    setLoadingHistory(true);
-    setPageError("");
-
-    try {
-      const data = await sessionService.getHistorySessions(token);
-      setHistory(data);
-    } catch (error) {
-      setPageError(getErrorMessage(error, "Failed to load dashboard data."));
-    } finally {
-      setLoadingHistory(false);
-    }
-  };
-
-  useEffect(() => {
-    loadHistory();
-  }, [token]);
-
-  const stats = useMemo(() => {
-    const completed = history.filter((item) => item.status === "completed").length;
-    const average =
-      history.length > 0
-        ? (
-            history.reduce((sum, item) => sum + Number(item.average_score || 0), 0) / history.length
-          ).toFixed(1)
-        : "-";
-
-    return {
-      total: history.length,
-      completed,
-      average,
-    };
-  }, [history]);
-
-  const handleCreateSession = async (event) => {
-    event.preventDefault();
-    setCreateError("");
-    setCreatingSession(true);
-
-    try {
-      const session = await sessionService.createSession(token, {
-        ...createForm,
-        language,
-      });
-
-      if (createForm.mode === "project_aware" && selectedFile) {
-        await uploadService.uploadProjectFile(token, session.id, selectedFile);
-      }
-
-      await interviewService.startInterview(token, session.id);
-      navigate(`/interview/${session.id}`);
-    } catch (error) {
-      setCreateError(getErrorMessage(error, "Failed to create session."));
-    } finally {
-      setCreatingSession(false);
-    }
-  };
+  const {
+    t,
+    user,
+    language,
+    createForm,
+    setCreateForm,
+    setSelectedFile,
+    history,
+    filteredHistory,
+    loadingHistory,
+    creatingSession,
+    pageError,
+    createError,
+    stats,
+    handleCreateSession,
+    showOnboarding,
+    onboarding,
+    setOnboarding,
+    handleSaveOnboarding,
+    handleSkipOnboarding,
+    filters,
+    setFilters,
+  } = useDashboard();
 
   return (
     <div className="container page-stack">
@@ -98,10 +39,77 @@ export default function DashboardPage() {
         subtitle={t("launchReviewTrack")}
       />
 
+      {showOnboarding ? (
+        <section className="dashboard-grid">
+          <div className="panel glass-card">
+            <h2>{t("onboardingTitle")}</h2>
+            <p className="muted">{t("onboardingSubtitle")}</p>
+
+            <form className="form-grid" onSubmit={handleSaveOnboarding}>
+              <div className="form-field">
+                <label>{t("targetRole")}</label>
+                <input
+                  type="text"
+                  value={onboarding.targetRole}
+                  onChange={(e) => setOnboarding((prev) => ({ ...prev, targetRole: e.target.value }))}
+                  placeholder={t("targetRolePlaceholder")}
+                />
+              </div>
+
+              <div className="form-field">
+                <label>{t("confidenceLevel")}</label>
+                <select
+                  value={onboarding.confidence}
+                  onChange={(e) => setOnboarding((prev) => ({ ...prev, confidence: e.target.value }))}
+                >
+                  <option value="">{t("selectOption")}</option>
+                  <option value="low">{t("confidenceLow")}</option>
+                  <option value="medium">{t("confidenceMedium")}</option>
+                  <option value="high">{t("confidenceHigh")}</option>
+                </select>
+              </div>
+
+              <div className="form-field">
+                <label>{t("focusArea")}</label>
+                <select
+                  value={onboarding.focusArea}
+                  onChange={(e) => setOnboarding((prev) => ({ ...prev, focusArea: e.target.value }))}
+                >
+                  <option value="">{t("selectOption")}</option>
+                  <option value="communication">{t("focusCommunication")}</option>
+                  <option value="backend_basics">{t("focusBackendBasics")}</option>
+                  <option value="problem_solving">{t("focusProblemSolving")}</option>
+                  <option value="projects">{t("focusProjects")}</option>
+                </select>
+              </div>
+
+              <div className="answer-actions">
+                <button className="btn btn-primary" type="submit">
+                  {t("saveOnboarding")}
+                </button>
+                <button className="btn btn-ghost" type="button" onClick={handleSkipOnboarding}>
+                  {t("skipForNow")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      ) : null}
+
       <section className="stats-grid">
         <StatCard label={t("totalSessions")} value={stats.total} />
         <StatCard label={t("completed")} value={stats.completed} />
         <StatCard label={t("averageScore")} value={stats.average} hint={t("acrossRecordedSessions")} />
+      </section>
+
+      <section className="stats-grid">
+        <StatCard
+          label={t("currentReadiness")}
+          value={stats.readiness?.label || "-"}
+          hint={stats.readiness?.readiness || t("notEnoughData")}
+        />
+        <StatCard label={t("recentTrend")} value={stats.trend} />
+        <StatCard label={t("topPracticeMode")} value={stats.dominantMode} />
       </section>
 
       <section className="dashboard-grid">
@@ -161,52 +169,126 @@ export default function DashboardPage() {
         </div>
 
         <div className="panel glass-card">
-          <h2>{t("previousSessions")}</h2>
+          <h2>{t("progressSnapshot")}</h2>
+
+          {!history.length ? (
+            <EmptyState title={t("noSessionsYet")} description={t("noSessionsDesc")} />
+          ) : (
+            <div className="score-breakdown">
+              <div className="insight-block">
+                <strong>{t("readinessSignal")}</strong>
+                <p className="muted">
+                  {stats.readiness ? `${stats.readiness.label} - ${stats.readiness.readiness}` : t("notEnoughData")}
+                </p>
+              </div>
+
+              <div className="insight-block">
+                <strong>{t("recentTrend")}</strong>
+                <p className="muted">{stats.trend}</p>
+              </div>
+
+              <div className="insight-block">
+                <strong>{t("topPracticeMode")}</strong>
+                <p className="muted">{stats.dominantMode}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="dashboard-grid">
+        <div className="panel glass-card">
+          <div className="panel-topline">
+            <h2>{t("previousSessions")}</h2>
+            <div className="conversation-meta">
+              <div className="form-field">
+                <input
+                  type="text"
+                  value={filters.search}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, search: e.target.value }))}
+                  placeholder={t("searchSessions")}
+                />
+              </div>
+
+              <div className="form-field">
+                <select
+                  value={filters.mode}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, mode: e.target.value }))}
+                >
+                  <option value="all">{t("allModes")}</option>
+                  <option value="standard">{t("standard")}</option>
+                  <option value="leetcode">{t("leetcode")}</option>
+                  <option value="project_aware">{t("projectAware")}</option>
+                </select>
+              </div>
+
+              <div className="form-field">
+                <select
+                  value={filters.status}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+                >
+                  <option value="all">{t("allStatuses")}</option>
+                  <option value="completed">{t("completed")}</option>
+                  <option value="in_progress">{t("inProgress")}</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
           {loadingHistory ? (
             <p className="muted">{t("loadingSessions")}</p>
           ) : pageError ? (
             <div className="alert-error">{pageError}</div>
-          ) : history.length === 0 ? (
-            <EmptyState title={t("noSessionsYet")} description={t("noSessionsDesc")} />
+          ) : filteredHistory.length === 0 ? (
+            <EmptyState title={t("noMatchingSessions")} description={t("tryDifferentFilters")} />
           ) : (
             <div className="session-list">
-              {history.map((session) => (
-                <article key={session.id} className="session-card">
-                  <div className="session-card-top">
-                    <div>
-                      <h3>
-                        {session.track} · {formatMode(session.mode)}
-                      </h3>
-                      <p className="muted">
-                        {session.level} · {session.status} · {formatDateTime(session.created_at)}
-                      </p>
+              {filteredHistory.map((session) => {
+                const meaning = getScoreMeaning(session.average_score || 0, language);
+
+                return (
+                  <article key={session.id} className="session-card">
+                    <div className="session-card-top">
+                      <div>
+                        <h3>
+                          {session.track} · {formatMode(session.mode)}
+                        </h3>
+                        <p className="muted">
+                          {session.level} · {session.status} · {formatDateTime(session.created_at)}
+                        </p>
+                      </div>
+
+                      <div className="score-pill">Avg {formatScore(session.average_score)}</div>
                     </div>
 
-                    <div className="score-pill">Avg {formatScore(session.average_score)}</div>
-                  </div>
-
-                  {session.report_summary ? (
-                    <p className="session-summary">{session.report_summary}</p>
-                  ) : (
-                    <p className="session-summary muted">{t("noReportSummaryYet")}</p>
-                  )}
-
-                  <div className="session-actions">
-                    <Link className="btn btn-secondary btn-sm" to={`/interview/${session.id}`}>
-                      {t("open")}
-                    </Link>
-                    <Link className="btn btn-ghost btn-sm" to={`/transcript/${session.id}`}>
-                      {t("transcriptOnly")}
-                    </Link>
-                    {session.status === "completed" ? (
-                      <Link className="btn btn-ghost btn-sm" to={`/report/${session.id}`}>
-                        {t("report")}
-                      </Link>
+                    {session.average_score !== null ? (
+                      <p className="session-summary">
+                        <strong>{meaning.label}</strong> - {meaning.readiness}
+                      </p>
                     ) : null}
-                  </div>
-                </article>
-              ))}
+
+                    {session.report_summary ? (
+                      <p className="session-summary">{session.report_summary}</p>
+                    ) : (
+                      <p className="session-summary muted">{t("noReportSummaryYet")}</p>
+                    )}
+
+                    <div className="session-actions">
+                      <Link className="btn btn-secondary btn-sm" to={`/interview/${session.id}`}>
+                        {t("open")}
+                      </Link>
+                      <Link className="btn btn-ghost btn-sm" to={`/transcript/${session.id}`}>
+                        {t("transcriptOnly")}
+                      </Link>
+                      {session.status === "completed" ? (
+                        <Link className="btn btn-ghost btn-sm" to={`/report/${session.id}`}>
+                          {t("report")}
+                        </Link>
+                      ) : null}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

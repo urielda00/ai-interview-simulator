@@ -1,156 +1,38 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
-import { useAppSettings } from "../hooks/useAppSettings";
-import { useT } from "../utils/i18n";
+import { Link } from "react-router-dom";
 import { PageHeader } from "../components/ui/PageHeader";
-import { sessionService } from "../services/sessionService";
-import { interviewService } from "../services/interviewService";
 import { formatDateTime, formatMode, formatScore } from "../utils/formatters";
-import { getErrorMessage } from "../utils/httpError";
-import { formatDuration, getCategoryLabel, getScoreMeaning } from "../utils/scoreInsights";
-
-const ANSWER_TIMING_KEY_PREFIX = "ai_interview_answer_timing_";
+import { formatDuration, getCategoryLabel } from "../utils/scoreInsights";
+import { useInterview } from "../hooks/useInterview";
 
 export default function InterviewPage() {
-  const { sessionId } = useParams();
-  const { token } = useAuth();
-  const { language } = useAppSettings();
-  const t = useT(language);
-
-  const [session, setSession] = useState(null);
-  const [transcript, setTranscript] = useState([]);
-  const [scoreSummary, setScoreSummary] = useState(null);
-  const [answer, setAnswer] = useState("");
-  const [loadingPage, setLoadingPage] = useState(true);
-  const [submittingAnswer, setSubmittingAnswer] = useState(false);
-  const [finishingInterview, setFinishingInterview] = useState(false);
-  const [pageError, setPageError] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [lastAnswerScore, setLastAnswerScore] = useState(null);
-  const [questionStartedAt, setQuestionStartedAt] = useState(Date.now());
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [answerTimings, setAnswerTimings] = useState(() => {
-    const raw = localStorage.getItem(`${ANSWER_TIMING_KEY_PREFIX}${sessionId}`);
-    if (!raw) return [];
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return [];
-    }
-  });
-
-  const conversationEndRef = useRef(null);
-
-  const persistTimings = (next) => {
-    setAnswerTimings(next);
-    localStorage.setItem(`${ANSWER_TIMING_KEY_PREFIX}${sessionId}`, JSON.stringify(next));
-  };
-
-  const loadData = async () => {
-    setLoadingPage(true);
-    setPageError("");
-
-    try {
-      const [sessionData, transcriptData] = await Promise.all([
-        sessionService.getSessionById(token, sessionId),
-        interviewService.getTranscript(token, sessionId).catch(() => null),
-      ]);
-
-      setSession(sessionData);
-      setTranscript(transcriptData?.messages || []);
-
-      try {
-        const scores = await sessionService.getScoreSummary(token, sessionId);
-        setScoreSummary(scores);
-      } catch {
-        setScoreSummary(null);
-      }
-    } catch (error) {
-      setPageError(getErrorMessage(error, "Failed to load interview."));
-    } finally {
-      setLoadingPage(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, [token, sessionId]);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - questionStartedAt) / 1000));
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [questionStartedAt]);
-
-  useEffect(() => {
-    conversationEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [transcript]);
-
-  const latestInterviewerMessage = useMemo(() => {
-    const interviewerMessages = transcript.filter((item) => item.role === "interviewer");
-    return interviewerMessages[interviewerMessages.length - 1] || null;
-  }, [transcript]);
-
-  const averageResponseTime = useMemo(() => {
-    if (!answerTimings.length) return 0;
-    return answerTimings.reduce((sum, item) => sum + Number(item.seconds || 0), 0) / answerTimings.length;
-  }, [answerTimings]);
-
-  const scoreMeaning = useMemo(() => {
-    return getScoreMeaning(scoreSummary?.average_score || lastAnswerScore || 0, language);
-  }, [scoreSummary, lastAnswerScore, language]);
-
-  const handleSubmitAnswer = async (event) => {
-    event.preventDefault();
-
-    if (!answer.trim()) return;
-
-    setSubmittingAnswer(true);
-    setActionError("");
-
-    const responseSeconds = Math.floor((Date.now() - questionStartedAt) / 1000);
-
-    try {
-      const data = await interviewService.answerInterview(token, {
-        session_id: Number(sessionId),
-        answer: answer.trim(),
-      });
-
-      setLastAnswerScore(data.score);
-
-      const nextTimingRow = {
-        questionIndex: transcript.filter((item) => item.role === "candidate").length + 1,
-        seconds: responseSeconds,
-        answeredAt: new Date().toISOString(),
-      };
-
-      persistTimings([...answerTimings, nextTimingRow]);
-      setAnswer("");
-      setQuestionStartedAt(Date.now());
-      await loadData();
-    } catch (error) {
-      setActionError(getErrorMessage(error, "Failed to submit answer."));
-    } finally {
-      setSubmittingAnswer(false);
-    }
-  };
-
-  const handleFinishInterview = async () => {
-    setFinishingInterview(true);
-    setActionError("");
-
-    try {
-      await interviewService.finishInterview(token, sessionId);
-      await loadData();
-    } catch (error) {
-      setActionError(getErrorMessage(error, "Failed to finish interview."));
-    } finally {
-      setFinishingInterview(false);
-    }
-  };
+  const {
+    t,
+    sessionId,
+    language,
+    session,
+    transcript,
+    scoreSummary,
+    reviewMap,
+    lastAnswerReview,
+    answer,
+    setAnswer,
+    loadingPage,
+    submittingAnswer,
+    finishingInterview,
+    pageError,
+    actionError,
+    lastAnswerScore,
+    elapsedSeconds,
+    answerTimings,
+    conversationEndRef,
+    latestInterviewerMessage,
+    averageResponseTime,
+    scoreMeaning,
+    topStrengthAreas,
+    focusAreas,
+    handleSubmitAnswer,
+    handleFinishInterview,
+  } = useInterview();
 
   if (loadingPage) {
     return (
@@ -210,15 +92,49 @@ export default function InterviewPage() {
             {transcript.length === 0 ? (
               <p className="muted">{t("noTranscriptYet")}</p>
             ) : (
-              transcript.map((message) => (
-                <div key={message.id} className={`message-row ${message.role}`}>
-                  <div className="message-meta">
-                    <span className={`role-badge ${message.role}`}>{message.role}</span>
-                    <span>{formatDateTime(message.created_at)}</span>
+              transcript.map((message) => {
+                const review = message.role === "candidate" ? reviewMap[message.id] : null;
+
+                return (
+                  <div key={message.id} className={`message-row ${message.role}`}>
+                    <div className="message-meta">
+                      <span className={`role-badge ${message.role}`}>{message.role}</span>
+                      <span>{formatDateTime(message.created_at)}</span>
+                    </div>
+                    <div className="message-card">{message.content}</div>
+
+                    {review ? (
+                      <div className={`readiness-card readiness-${review.tone}`} style={{ marginTop: 10 }}>
+                        <div className="readiness-top">
+                          <strong>{t("answerReview")}</strong>
+                          <span>{formatScore(review.overall_score)}</span>
+                        </div>
+                        <p>{review.summary}</p>
+
+                        <div className="insight-block">
+                          <strong>{t("whatWorked")}</strong>
+                          <ul className="insight-list">
+                            {review.what_worked.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="insight-block">
+                          <strong>{t("improveNext")}</strong>
+                          <ul className="insight-list">
+                            {review.improve_next.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <p className="muted">{review.encouragement}</p>
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="message-card">{message.content}</div>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={conversationEndRef} />
           </div>
@@ -232,6 +148,7 @@ export default function InterviewPage() {
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
               />
+              <div className="muted">{t("draftAutosaved")}</div>
               {actionError ? <div className="alert-error">{actionError}</div> : null}
               <div className="answer-actions">
                 <button className="btn btn-primary" type="submit" disabled={submittingAnswer}>
@@ -260,6 +177,39 @@ export default function InterviewPage() {
             <h3>{t("currentPrompt")}</h3>
             <p>{latestInterviewerMessage?.content || t("noInterviewerMessageYet")}</p>
           </div>
+
+          {lastAnswerReview ? (
+            <div className="panel glass-card">
+              <h3>{t("latestAnswerReview")}</h3>
+              <div className={`readiness-card readiness-${lastAnswerReview.tone}`}>
+                <div className="readiness-top">
+                  <strong>{t("answerReview")}</strong>
+                  <span>{formatScore(lastAnswerReview.overall_score)}</span>
+                </div>
+                <p>{lastAnswerReview.summary}</p>
+
+                <div className="insight-block">
+                  <strong>{t("whatWorked")}</strong>
+                  <ul className="insight-list">
+                    {lastAnswerReview.what_worked.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="insight-block">
+                  <strong>{t("improveNext")}</strong>
+                  <ul className="insight-list">
+                    {lastAnswerReview.improve_next.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <p className="muted">{lastAnswerReview.encouragement}</p>
+              </div>
+            </div>
+          ) : null}
 
           <div className="panel glass-card">
             <h3>{t("scoreSummary")}</h3>
@@ -318,18 +268,18 @@ export default function InterviewPage() {
             <div className="insight-block">
               <strong>{t("excellentNow")}</strong>
               <ul className="insight-list">
-                {scoreMeaning.strengths.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
+                {topStrengthAreas.length
+                  ? topStrengthAreas.map((item) => <li key={item}>{item}</li>)
+                  : scoreMeaning.strengths.map((item) => <li key={item}>{item}</li>)}
               </ul>
             </div>
 
             <div className="insight-block">
               <strong>{t("improveNow")}</strong>
               <ul className="insight-list">
-                {scoreMeaning.improvements.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
+                {focusAreas.length
+                  ? focusAreas.map((item) => <li key={item}>{item}</li>)
+                  : scoreMeaning.improvements.map((item) => <li key={item}>{item}</li>)}
               </ul>
             </div>
           </div>
